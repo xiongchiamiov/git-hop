@@ -1,0 +1,32 @@
+#!/bin/sh
+
+commit=$1
+
+# Find the basest branch that contains the commit.
+baseBranch='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+branches=`git branch --contains $commit | sed 's/\* //'`
+for branch in $branches; do
+	echo "$branch ${#branch}"
+	if [ "$branch" == "master" ] || [ ${#branch} -lt ${#baseBranch} ]; then
+		baseBranch=$branch
+	fi
+done
+echo '============'
+echo $baseBranch
+echo '============'
+
+# Find the next available child-branch name.
+branches=`git branch | grep -E "^[\* ]*${baseBranch}.+" | sed 's/\* //'`
+if [ "$branches" == '' ]; then
+	newBranch="${baseBranch}a"
+else
+	echo ${#branches}
+	asciiValue=`expr ${#branches} + 96`
+	echo $asciiValue
+	newBranch=${baseBranch}`printf "\x$(printf %x $asciiValue)"`
+fi
+echo '============'
+echo $newBranch
+
+git checkout -b $newBranch $commit
+
